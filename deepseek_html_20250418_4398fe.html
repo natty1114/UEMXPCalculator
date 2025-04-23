@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>XP Multiplier Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto; padding: 20px; }
+    h2 { color: #2c3e50; }
+    label { display: block; margin: 10px 0; }
+    input[type="number"], input[type="checkbox"] { margin-right: 10px; }
+    button { 
+      background-color: #3498db; color: white; border: none; 
+      padding: 10px 15px; margin-top: 10px; cursor: pointer; 
+    }
+    #result { 
+      font-size: 1.2em; margin-top: 20px; padding: 10px; 
+      background-color: #f8f9fa; border-radius: 4px; 
+    }
+    small { color: #7f8c8d; }
+    .tier-info { margin-top: 5px; font-size: 0.9em; color: #3498db; }
+  </style>
+</head>
+<body>
+  <h2>XP Multiplier Calculator</h2>
+  
+  <label>
+    Base XP: <input type="number" id="base" value="0.5" step="0.01" min="0">
+  </label>
+  
+  <label>
+    <input type="checkbox" id="masterOn">
+    Master Level: <input type="number" id="masterLvl" value="1" min="1">
+    <small>(1.25 × level added to base)</small>
+  </label>
+  
+  <label>
+    <input type="checkbox" id="brutalOn">
+    Brutal Level: <input type="number" id="brutalLvl" value="1" min="1">
+    <small>(Tiered bonus based on base XP)</small>
+    <div class="tier-info">
+      Brutal Tiers: <br>
+      ≥1.00: 0.00525 × level<br>
+      0.75-0.99: 0.0039 × level<br>
+      0.5-0.74: 0.0023 × level<br>
+      0.4-0.49: 0.0022 × level<br>
+      &lt;0.4: 0.0017 × level
+    </div>
+  </label>
+  
+  <label>
+    Perks Disabled: <input type="number" id="perks" value="0" min="0" max="14">
+    <small>(0 perks = skip multiplier | 1-14 perks = +0.0093 per perk)</small>
+  </label>
+  
+  <label>
+    <input type="checkbox" id="wawOn">
+    WAW Mode <small>(+0.28)</small>
+  </label>
+  
+  <label>
+    <input type="checkbox" id="boOn">
+    Black Ops Mode <small>(+0.25)</small>
+  </label>
+  
+  <button onclick="calculate()">Calculate Multiplier</button>
+  
+  <div id="result">Final Multiplier: 1.0</div>
+
+  <script>
+    function calculate() {
+      // Get inputs
+      let base = parseFloat(document.getElementById("base").value);
+      const masterOn = document.getElementById("masterOn").checked;
+      const masterLvl = parseInt(document.getElementById("masterLvl").value);
+      const brutalOn = document.getElementById("brutalOn").checked;
+      const brutalLvl = parseInt(document.getElementById("brutalLvl").value);
+      const perks = parseInt(document.getElementById("perks").value);
+      const wawOn = document.getElementById("wawOn").checked;
+      const boOn = document.getElementById("boOn").checked;
+
+      // Master Level (unchanged)
+      if (masterOn) {
+        base += 1.25 * masterLvl;
+      }
+
+      // Brutal Level: Custom tiered calculation
+      let brutalBonus = 0;
+      let brutalTier = "None";
+      if (brutalOn) {
+        if (base >= 1.00) {
+          brutalBonus = 0.00525 * brutalLvl;
+          brutalTier = "High Base (0.00525 × level)";
+        } else if (base >= 0.75) {
+          brutalBonus = 0.0039 * brutalLvl;
+          brutalTier = "Tier 0.75-0.99 (0.0039 × level)";
+        } else if (base >= 0.5) {
+          brutalBonus = 0.0023 * brutalLvl;
+          brutalTier = "Tier 0.5-0.74 (0.0023 × level)";
+        } else if (base >= 0.4) {
+          brutalBonus = 0.0022 * brutalLvl;
+          brutalTier = "Tier 0.4-0.49 (0.0022 × level)";
+        } else {
+          brutalBonus = 0.0017 * brutalLvl;
+          brutalTier = "Tier <0.4 (0.0017 × level)";
+        }
+      }
+      base += brutalBonus;
+
+      // Mode bonuses (unchanged)
+      const wawBonus = wawOn ? 0.28 : 0;
+      const boBonus = boOn ? 0.25 : 0;
+
+      // Perk multiplier (unchanged)
+      const perkMult = perks > 0 ? (1 + perks * 0.0093) : 1;
+
+      // Final calculation
+      let final = (base * perkMult) + wawBonus + boBonus;
+      final = Math.round(final * 100) / 100; // Round to 2 decimal places
+
+      // Breakdown text
+      let breakdown = `${base.toFixed(6)} (Base)`;
+      if (brutalOn) {
+        breakdown += ` + ${brutalBonus.toFixed(5)} (Brutal: ${brutalTier})`;
+      }
+      if (perks > 0) {
+        breakdown += ` × ${perkMult.toFixed(4)} (Perks)`;
+      }
+      if (wawOn) {
+        breakdown += ` + 0.28 (WAW)`;
+      }
+      if (boOn) {
+        breakdown += ` + 0.25 (BO1)`;
+      }
+
+      // Display result
+      document.getElementById("result").innerHTML = `
+        <strong>Final Multiplier:</strong> x${final.toFixed(2)}<br>
+        <small>${breakdown}</small>
+      `;
+    }
+  </script>
+</body>
+</html>
